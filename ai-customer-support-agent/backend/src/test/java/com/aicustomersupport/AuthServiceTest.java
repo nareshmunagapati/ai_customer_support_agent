@@ -74,4 +74,15 @@ public class AuthServiceTest {
         assertThrows(BadRequestException.class, () -> authService.register(request));
         verify(userRepository, never()).save(any(User.class));
     }
+
+    @Test
+    void testPublicRegistrationCannotCreateAdministrator() {
+        RegisterRequest request = new RegisterRequest(
+                "Test Admin", "admin@example.com", "Password123!", null, UserRole.ADMIN);
+
+        assertThrows(BadRequestException.class, () -> authService.register(request));
+
+        verify(userRepository, never()).save(any(User.class));
+        verify(passwordEncoder, never()).encode(anyString());
+    }
 }

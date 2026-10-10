@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
-import { Bot, LogIn, Lock, Mail, UserCheck } from 'lucide-react';
+import { Bot, LogIn, Lock, Mail } from 'lucide-react';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -37,11 +37,6 @@ export default function LoginPage() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleQuickLogin = (demoEmail) => {
-    setEmail(demoEmail);
-    setPassword('Password123!');
   };
 
   return (
@@ -117,36 +112,6 @@ export default function LoginPage() {
             {loading ? 'Authenticating...' : <><LogIn size={18} /> Sign In</>}
           </button>
         </form>
-
-        {/* Demo Fast Login Pills */}
-        <div style={{ marginTop: '1.75rem', paddingTop: '1.25rem', borderTop: '1px solid var(--border)' }}>
-          <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 600, textAlign: 'center', marginBottom: '0.75rem' }}>
-            Quick Demo Autofill
-          </div>
-          <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
-            <button
-              type="button"
-              className="btn btn-secondary btn-sm"
-              onClick={() => handleQuickLogin('customer@example.com')}
-            >
-              Customer
-            </button>
-            <button
-              type="button"
-              className="btn btn-secondary btn-sm"
-              onClick={() => handleQuickLogin('agent@example.com')}
-            >
-              Agent
-            </button>
-            <button
-              type="button"
-              className="btn btn-secondary btn-sm"
-              onClick={() => handleQuickLogin('admin@example.com')}
-            >
-              Admin
-            </button>
-          </div>
-        </div>
 
         <div style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: '0.88rem', color: 'var(--text-secondary)' }}>
           Don't have an account?{' '}

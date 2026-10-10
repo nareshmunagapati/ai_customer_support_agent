@@ -1,18 +1,7 @@
--- AI Customer Support Agent Seed Data
--- Database: ai_customer_support
+-- AI Customer Support Agent public knowledge base seed data.
+-- Demo users, password hashes, tickets, and administrator credentials are intentionally excluded.
 
 USE `ai_customer_support`;
-
--- 1. Demo Users (Password for all demo accounts is Password123!)
--- BCrypt hash: $2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi
-INSERT INTO `users` (`id`, `name`, `email`, `password_hash`, `phone`, `role`, `created_at`)
-VALUES
-(1, 'System Administrator', 'admin@example.com', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', '+1-555-0100', 'ADMIN', NOW()),
-(2, 'Sarah Agent', 'agent@example.com', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', '+1-555-0101', 'SUPPORT_AGENT', NOW()),
-(3, 'Alex Agent', 'alex.agent@example.com', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', '+1-555-0102', 'SUPPORT_AGENT', NOW()),
-(4, 'John Doe', 'customer@example.com', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', '+1-555-0103', 'CUSTOMER', NOW()),
-(5, 'Jane Smith', 'jane.customer@example.com', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', '+1-555-0104', 'CUSTOMER', NOW())
-ON DUPLICATE KEY UPDATE `email` = VALUES(`email`);
 
 -- 2. Knowledge Base Articles
 INSERT INTO `knowledge_base_articles` (`id`, `title`, `question`, `answer`, `category`, `keywords`, `createdAt`)
@@ -73,33 +62,3 @@ VALUES
  'hours, contact, phone, email, support hours, help, general, business hours',
  NOW())
 ON DUPLICATE KEY UPDATE `title` = VALUES(`title`);
-
--- 3. Sample Tickets
-INSERT INTO `tickets` (`id`, `customer_id`, `assigned_agent_id`, `subject`, `description`, `category`, `priority`, `status`, `created_at`, `updated_at`)
-VALUES
-(1, 4, 2, 'Cannot log in after resetting password', 'I received the reset email, clicked the link and entered a new password, but logging in gives error 401.', 'Account and login', 'HIGH', 'IN_PROGRESS', NOW() - INTERVAL 2 DAY, NOW() - INTERVAL 1 DAY),
-(2, 4, 3, 'Double charge on invoice #9021', 'My credit card shows two charges of $89.99 for order #9021. Please refund the duplicate transaction.', 'Payment', 'URGENT', 'ESCALATED', NOW() - INTERVAL 1 DAY, NOW() - INTERVAL 6 HOUR),
-(3, 5, NULL, 'Package marked as delivered but not received', 'Tracking status says delivered on front porch yesterday 3pm, but nothing is there.', 'Orders and delivery', 'MEDIUM', 'OPEN', NOW() - INTERVAL 4 HOUR, NOW() - INTERVAL 4 HOUR),
-(4, 5, 2, 'Request for invoice copy for order #8841', 'Need a tax invoice PDF for business reimbursement.', 'General queries', 'LOW', 'RESOLVED', NOW() - INTERVAL 5 DAY, NOW() - INTERVAL 3 DAY)
-ON DUPLICATE KEY UPDATE `subject` = VALUES(`subject`);
-
--- 4. Sample Conversation and Messages
-INSERT INTO `conversations` (`id`, `customer_id`, `ticket_id`, `created_at`)
-VALUES
-(1, 4, 1, NOW() - INTERVAL 2 DAY),
-(2, 4, 2, NOW() - INTERVAL 1 DAY)
-ON DUPLICATE KEY UPDATE `customer_id` = VALUES(`customer_id`);
-
-INSERT INTO `messages` (`id`, `conversation_id`, `sender_type`, `message`, `created_at`)
-VALUES
-(1, 1, 'CUSTOMER', 'Hi, I cannot log in after resetting my password.', NOW() - INTERVAL 2 DAY),
-(2, 1, 'AI', 'Hello John! I understand you are having login issues. Please ensure caps lock is disabled, clear your browser cache, or try an incognito window. If the issue persists, would you like me to connect you with a human agent?', NOW() - INTERVAL 2 DAY + INTERVAL 2 SECOND),
-(3, 1, 'CUSTOMER', 'I tried incognito and it still failed. Please escalate.', NOW() - INTERVAL 2 DAY + INTERVAL 1 MINUTE),
-(4, 1, 'AGENT', 'Hello John, Sarah here from Support. I checked your account and detected a temporary security lock. I have unlocked your account and sent a fresh activation link.', NOW() - INTERVAL 1 DAY)
-ON DUPLICATE KEY UPDATE `message` = VALUES(`message`);
-
--- 5. Sample Feedback
-INSERT INTO `feedback` (`id`, `ticket_id`, `customer_id`, `rating`, `comment`, `created_at`)
-VALUES
-(1, 4, 5, 5, 'Quick response and had my tax invoice sent in minutes! Great support.', NOW() - INTERVAL 3 DAY)
-ON DUPLICATE KEY UPDATE `comment` = VALUES(`comment`);

@@ -2,16 +2,23 @@ package com.aicustomersupport.config;
 
 import com.aicustomersupport.entity.*;
 import com.aicustomersupport.repository.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.nio.charset.StandardCharsets;
 
 @Component
+@ConditionalOnProperty(name = "app.seed-demo-data", havingValue = "true")
 public class DataInitializer implements CommandLineRunner {
+
+    private static final int MIN_DEMO_PASSWORD_LENGTH = 12;
+    private static final int MAX_BCRYPT_PASSWORD_BYTES = 72;
 
     private static final Logger log = LoggerFactory.getLogger(DataInitializer.class);
 
@@ -21,60 +28,74 @@ public class DataInitializer implements CommandLineRunner {
     private final ConversationRepository conversationRepository;
     private final MessageRepository messageRepository;
     private final PasswordEncoder passwordEncoder;
+    private final String demoPassword;
 
     public DataInitializer(UserRepository userRepository,
                            KnowledgeBaseArticleRepository articleRepository,
                            TicketRepository ticketRepository,
                            ConversationRepository conversationRepository,
                            MessageRepository messageRepository,
-                           PasswordEncoder passwordEncoder) {
+                           PasswordEncoder passwordEncoder,
+                           @Value("${app.demo.password:}") String demoPassword) {
         this.userRepository = userRepository;
         this.articleRepository = articleRepository;
         this.ticketRepository = ticketRepository;
         this.conversationRepository = conversationRepository;
         this.messageRepository = messageRepository;
         this.passwordEncoder = passwordEncoder;
+        this.demoPassword = demoPassword;
     }
 
     @Override
     public void run(String... args) {
-        seedUsers();
+        validateDemoPassword();
+        seedUsers(passwordEncoder.encode(demoPassword));
         seedKnowledgeBase();
         seedSampleTickets();
         log.info("AI Customer Support Agent: Data initialization completed successfully.");
     }
 
-    private void seedUsers() {
+    private void validateDemoPassword() {
+        int passwordBytes = demoPassword.getBytes(StandardCharsets.UTF_8).length;
+        if (demoPassword.isBlank()
+                || demoPassword.length() < MIN_DEMO_PASSWORD_LENGTH
+                || passwordBytes > MAX_BCRYPT_PASSWORD_BYTES) {
+            throw new IllegalStateException(
+                    "DEMO_PASSWORD is required when SEED_DEMO_DATA=true and must be 12-72 UTF-8 bytes");
+        }
+    }
+
+    private void seedUsers(String encodedDemoPassword) {
         if (!userRepository.existsByEmail("admin@example.com")) {
             User admin = new User("System Administrator", "admin@example.com",
-                    passwordEncoder.encode("Password123!"), "+1-555-0100", UserRole.ADMIN);
+                    encodedDemoPassword, "+1-555-0100", UserRole.ADMIN);
             userRepository.save(admin);
             log.info("Created default admin user: admin@example.com");
         }
 
         if (!userRepository.existsByEmail("agent@example.com")) {
             User agent = new User("Sarah Agent", "agent@example.com",
-                    passwordEncoder.encode("Password123!"), "+1-555-0101", UserRole.SUPPORT_AGENT);
+                    encodedDemoPassword, "+1-555-0101", UserRole.SUPPORT_AGENT);
             userRepository.save(agent);
             log.info("Created default support agent user: agent@example.com");
         }
 
         if (!userRepository.existsByEmail("alex.agent@example.com")) {
             User agent2 = new User("Alex Agent", "alex.agent@example.com",
-                    passwordEncoder.encode("Password123!"), "+1-555-0102", UserRole.SUPPORT_AGENT);
+                    encodedDemoPassword, "+1-555-0102", UserRole.SUPPORT_AGENT);
             userRepository.save(agent2);
         }
 
         if (!userRepository.existsByEmail("customer@example.com")) {
             User customer = new User("John Doe", "customer@example.com",
-                    passwordEncoder.encode("Password123!"), "+1-555-0103", UserRole.CUSTOMER);
+                    encodedDemoPassword, "+1-555-0103", UserRole.CUSTOMER);
             userRepository.save(customer);
             log.info("Created default customer user: customer@example.com");
         }
 
         if (!userRepository.existsByEmail("jane.customer@example.com")) {
             User customer2 = new User("Jane Smith", "jane.customer@example.com",
-                    passwordEncoder.encode("Password123!"), "+1-555-0104", UserRole.CUSTOMER);
+                    encodedDemoPassword, "+1-555-0104", UserRole.CUSTOMER);
             userRepository.save(customer2);
         }
     }

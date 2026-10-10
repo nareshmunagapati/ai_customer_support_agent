@@ -126,58 +126,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Demo Accounts Quick-Fill Guide */}
-      <section style={{ maxWidth: 1000, margin: '0 auto 5rem', padding: '0 1.5rem' }}>
-        <div className="card" style={{ backgroundColor: '#f8fafc', borderColor: '#cbd5e1', padding: '2rem' }}>
-          <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)' }}>Quick Start Demo Accounts</h2>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
-              Test each role immediately using pre-configured test credentials (password: <code>Password123!</code>):
-            </p>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1rem' }}>
-            <div style={{ background: '#ffffff', padding: '1.25rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 700, color: '#4f46e5', marginBottom: '0.5rem' }}>
-                <Bot size={18} /> Customer Role
-              </div>
-              <div style={{ fontSize: '0.88rem', color: 'var(--text-secondary)' }}>
-                Email: <strong>customer@example.com</strong><br />
-                Password: <strong>Password123!</strong>
-              </div>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
-                Access chatbot, submit tickets, track statuses, rate support.
-              </p>
-            </div>
-
-            <div style={{ background: '#ffffff', padding: '1.25rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 700, color: '#059669', marginBottom: '0.5rem' }}>
-                <Headphones size={18} /> Support Agent Role
-              </div>
-              <div style={{ fontSize: '0.88rem', color: 'var(--text-secondary)' }}>
-                Email: <strong>agent@example.com</strong><br />
-                Password: <strong>Password123!</strong>
-              </div>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
-                Review assigned tickets, view user chat logs, reply and resolve.
-              </p>
-            </div>
-
-            <div style={{ background: '#ffffff', padding: '1.25rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 700, color: '#dc2626', marginBottom: '0.5rem' }}>
-                <Shield size={18} /> Administrator Role
-              </div>
-              <div style={{ fontSize: '0.88rem', color: 'var(--text-secondary)' }}>
-                Email: <strong>admin@example.com</strong><br />
-                Password: <strong>Password123!</strong>
-              </div>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
-                Full analytics, assign tickets to agents, edit knowledge base.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
     </div>
   );
 }

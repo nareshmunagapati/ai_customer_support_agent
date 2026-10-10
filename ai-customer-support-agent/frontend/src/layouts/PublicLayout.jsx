@@ -117,9 +117,6 @@ export default function PublicLayout() {
         }}
       >
         <p>© 2026 AI Customer Support Agent. Built with Spring Boot, MySQL, and React.</p>
-        <p style={{ marginTop: '0.5rem', fontSize: '0.8rem', color: '#64748b' }}>
-          Demo Accounts: admin@example.com (Admin) | agent@example.com (Agent) | customer@example.com (Customer)
-        </p>
       </footer>
     </div>
   );

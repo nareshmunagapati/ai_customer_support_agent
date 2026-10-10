@@ -15,11 +15,15 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AuthService {
+
+    @Value("${app.registration.allow-agent-signup:true}")
+    private boolean allowAgentSignup;
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -42,7 +46,14 @@ public class AuthService {
             throw new BadRequestException("An account with email " + request.getEmail() + " already exists");
         }
 
-        UserRole role = request.getRole() != null ? request.getRole() : UserRole.CUSTOMER;
+        UserRole requestedRole = request.getRole();
+        if (requestedRole == UserRole.ADMIN) {
+            throw new BadRequestException("Administrator accounts cannot be created through public registration");
+        }
+        if (requestedRole == UserRole.SUPPORT_AGENT && !allowAgentSignup) {
+            throw new BadRequestException("Support agent registration is disabled");
+        }
+        UserRole role = requestedRole != null ? requestedRole : UserRole.CUSTOMER;
 
         User user = new User(
                 request.getName().trim(),

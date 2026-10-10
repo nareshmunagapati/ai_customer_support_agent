@@ -93,7 +93,7 @@ ai-customer-support-agent/
 │
 ├── database/
 │   ├── schema.sql                # Complete MySQL DDL schema
-│   └── data.sql                  # Seed data with demo accounts and 8 KB articles
+│   └── data.sql                  # Optional seed data for public knowledge base articles
 │
 ├── .env.example                  # Environment configuration template
 ├── .gitignore
@@ -102,19 +102,9 @@ ai-customer-support-agent/
 
 ---
 
-## 🔑 Demo Accounts
+## Local Demo Data
 
-The application automatically seeds the following demo users upon first startup (passwords are pre-hashed with BCrypt):
-
-| Role | Email | Password | Description |
-|---|---|---|---|
-| **Administrator** | `admin@example.com` | `Password123!` | Full admin dashboard, ticket assignment, KB management |
-| **Support Agent** | `agent@example.com` | `Password123!` | Ticket resolution, customer replies, queue status |
-| **Support Agent** | `alex.agent@example.com` | `Password123!` | Secondary support specialist |
-| **Customer** | `customer@example.com` | `Password123!` | AI chatbot, ticket creation, feedback rating |
-| **Customer** | `jane.customer@example.com` | `Password123!` | Sample customer account |
-
-> **Tip:** The Login page includes convenient one-click demo autofill buttons for Customer, Agent, and Admin.
+Demo records are disabled by default. To enable them in a local development environment, explicitly set `SEED_DEMO_DATA=true` and provide a private `DEMO_PASSWORD` of at least 12 characters (no more than 72 UTF-8 bytes). The initializer creates sample users, tickets, and knowledge base content using that local-only password. Do not enable demo seeding or set `DEMO_PASSWORD` in production. No demo credentials are published in the application UI or this README.
 
 ---
 
@@ -145,27 +135,25 @@ The application automatically seeds the following demo users upon first startup 
    ```sql
    SOURCE database/data.sql;
    ```
-   > **Note:** Spring Boot includes a built-in `DataInitializer` that automatically provisions default demo accounts and knowledge base articles if the database is initially empty.
+   > **Note:** `database/data.sql` seeds public knowledge base articles only. Demo accounts and sample tickets are created by the application initializer only when `SEED_DEMO_DATA=true` and a local `DEMO_PASSWORD` is configured.
 
 ---
 
 ### 3. Environment Variables Configuration
 
-Copy `.env.example` to `.env` or set environment variables:
+Spring Boot does not load `.env` files automatically. Set these variables in the shell that starts Maven (or configure them in your IDE):
 
 ```bash
 # Windows PowerShell
 $env:DB_URL="jdbc:mysql://localhost:3306/ai_customer_support?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
 $env:DB_USERNAME="root"
 $env:DB_PASSWORD="your_mysql_password_here"
+$env:JWT_SECRET="<base64-encoded random secret of at least 32 bytes>"
 ```
 
-Or configure directly in `backend/src/main/resources/application.properties`:
-```properties
-spring.datasource.url=jdbc:mysql://localhost:3306/ai_customer_support?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-spring.datasource.username=root
-spring.datasource.password=your_mysql_password_here
-```
+Generate a development JWT key with `openssl rand -base64 32`. Do not put real credentials in tracked files. The Vite frontend reads `frontend/.env`; set `VITE_API_BASE_URL=http://localhost:8080` there for local use.
+
+For local demo records only, explicitly set `SEED_DEMO_DATA=true` and `DEMO_PASSWORD` in your local backend environment. Demo seeding is disabled by default.
 
 ---
 
@@ -285,3 +273,51 @@ All 12 backend unit and integration tests compile and run via Maven:
 - `AuthServiceTest`: Validates user registration and duplicate check validations.
 - `TicketServiceTest`: Validates ticket creation, escalation, and agent assignment.
 - `CustomerSupportIntegrationTest`: End-to-end integration test validating authentication, AI chatbot responses, ticket creation, escalation, and public knowledge base searches.
+
+---
+
+## ☁️ Deployment (Vercel + Render + Managed MySQL)
+
+The frontend and API are deployed separately. Use the managed MySQL provider's connection details for the Render service; this repository does not create cloud resources.
+
+### Frontend on Vercel
+
+1. Import the GitHub repository into Vercel and set **Root Directory** to `frontend`.
+2. Use the Vite defaults: **Build Command** `npm run build`, **Output Directory** `dist`, and **Install Command** `npm install` (or let Vercel detect them).
+3. Set the `VITE_API_BASE_URL` environment variable to the public Render API URL, for example `https://your-api.onrender.com` (no trailing slash).
+4. Deploy. `frontend/vercel.json` rewrites client-side routes to `index.html` so refreshes on React Router routes work.
+
+### Backend on Render (Docker)
+
+Create a **Web Service** from this repository, choose **Docker** as the runtime, and set the Dockerfile path to `backend/Dockerfile` (or set the service root directory to `backend` and use `Dockerfile`). The container listens on Render's `PORT` environment variable.
+
+Configure these environment variables in Render. Keep credentials in Render's secret environment settings; do not commit them:
+
+| Variable | Value |
+|---|---|
+| `DB_URL` | JDBC URL for your managed MySQL database, e.g. `jdbc:mysql://HOST:3306/DATABASE?sslMode=REQUIRED&serverTimezone=UTC` (follow your provider's TLS requirements) |
+| `DB_USERNAME` | Database username |
+| `DB_PASSWORD` | Database password |
+| `JWT_SECRET` | A unique Base64-encoded secret of at least 32 random bytes |
+| `CORS_ALLOWED_ORIGINS` | Exact Vercel origin, e.g. `https://your-app.vercel.app`; comma-separate additional trusted origins if needed |
+| `SEED_DEMO_DATA` | `false` for deployed environments; prevents demo users, tickets, and sample records from being inserted |
+| `DEMO_PASSWORD` | Local development only; required if demo seeding is enabled and must never be configured in production |
+| `ALLOW_AGENT_SIGNUP` | `false` for deployed environments; public signups should create customer accounts only |
+| `ADMIN_BOOTSTRAP_EMAIL` | Optional one-time administrator email; set together with the password below |
+| `ADMIN_BOOTSTRAP_PASSWORD` | Optional one-time administrator password; at least 12 characters and at most 72 UTF-8 bytes |
+| `PORT` | Supplied by Render; do not hardcode a different port |
+
+Generate a JWT key locally with `openssl rand -base64 32`; set the resulting value only in Render's environment configuration. Changing this key invalidates existing JWTs. Configure the managed database and create its database/schema before starting the backend. Hibernate `update` creates missing tables and updates mapped schema, but it is not a versioned migration system; back up production data and use reviewed migrations for future schema changes. The included SQL seed files and demo initializer are for development/sample data, not production provisioning.
+
+To provision the first production administrator, temporarily set `ADMIN_BOOTSTRAP_EMAIL` and `ADMIN_BOOTSTRAP_PASSWORD` together in the backend service's secret environment settings, keep `SEED_DEMO_DATA=false`, and run exactly **one backend instance** during bootstrap. At startup, the application creates an administrator only when none exists and stores the password using the existing BCrypt encoder. It fails startup if only one bootstrap value is configured. After the successful startup, remove **both** bootstrap variables from the service settings. Later restarts without them leave the administrator unchanged. If the variables remain set, later starts still never reset or overwrite an existing administrator. Do not use the public registration form to provision staff.
+
+### Verify the deployed connection
+
+Set the Vercel API URL and Render CORS origin to the corresponding public service URLs. Open the Vercel site, test public knowledge base access and sign-in, and check Render logs for database connectivity or startup errors. For local checks, run `npm run build` from `frontend` and `mvn test` from `backend`.
+
+### Production notes
+
+- Keep `SEED_DEMO_DATA=false` and `ALLOW_AGENT_SIGNUP=false`; public registration cannot create administrator accounts, and customer registration remains available. Use the one-time bootstrap variables above for the first administrator, run one backend instance during bootstrap, then remove both variables.
+- The backend requires database credentials and `JWT_SECRET` through environment variables. The development JWT fallback and embedded database password have been removed.
+- CORS permits only the configured origin(s); avoid wildcard origins. Authentication remains stateless with JWT, and password hashes continue to use BCrypt.
+- Keep TLS enabled for managed MySQL connections according to the provider's documented JDBC parameters. Do not expose database credentials in the frontend, source control, or logs.
