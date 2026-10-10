@@ -1,3 +1,4 @@
+ HEAD
 # AI Customer Support Agent
 
 A full-stack, enterprise-grade AI-powered customer support web application built with **React.js**, **Java Spring Boot**, **MySQL**, and **Maven**.
@@ -285,3 +286,6 @@ All 12 backend unit and integration tests compile and run via Maven:
 - `AuthServiceTest`: Validates user registration and duplicate check validations.
 - `TicketServiceTest`: Validates ticket creation, escalation, and agent assignment.
 - `CustomerSupportIntegrationTest`: End-to-end integration test validating authentication, AI chatbot responses, ticket creation, escalation, and public knowledge base searches.
+=======
+# ai_customer_support_agent
+AI Customer Support Agent Backend is a backend application designed to automate customer support using artificial intelligence. It handles customer queries, processes requests, and provides relevant responses through APIs. The project aims to improve response time, enhance customer experience, and reduce manual support efforts. fbaff81c863865599e91e6dbe494e3b2cf816133
